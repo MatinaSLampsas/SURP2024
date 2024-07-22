@@ -23,7 +23,7 @@ library(readxl)
 
 ```{r}
 adjusted_data <- read.csv(here::here("data",
-                     "adjusted_data.csv")
+                     "adjusted_data_new.csv")
                      )
 combined_data <- read.csv(here::here("data",
                      "house_data.csv")
@@ -71,7 +71,7 @@ California Valley	78.5, 61.4
 San Simeon: 68.4, 46.5
 
 ```{r}
-# Create the data frame
+# Create the data frame to add temperatures 
 temp_data <- data.frame(
   CITY = c(
     "Atascadero", "Nipomo", "Paso Robles", "San Luis Obispo", "Arroyo Grande",
@@ -92,13 +92,19 @@ temp_data <- data.frame(
   )
 )
 
-# Print the data frame
 ```
-```{r}
-adjusted_data <- left_join(adjusted_data, temp_data, by = 'City')
-combined_data <- left_join(combined_data, temp_data, by = 'CITY')
 
+
+```{r}
+# rename  the city variable and then add the columns for the temps
+adjusted_data <-adjusted_data %>%
+  rename(CITY = City)
+adjusted_data <- left_join(adjusted_data, temp_data, by = 'CITY')
+combined_data <- left_join(combined_data, temp_data, by = 'CITY')
 ```
+
+
+## Graphs - Week of 7/15
 
 ```{r}
 city_filter <- c("Paso Robles", "San Luis Obispo", "Atascadero", "Arroyo Grande", "Nipomo", "Cambria")
@@ -114,12 +120,6 @@ city_filter <- c("Paso Robles", "San Luis Obispo", "Atascadero", "Arroyo Grande"
 combined_data %>% 
   filter(CITY %in% city_filter) %>% 
   summary()
-```
-
-```{r}
-adjusted_data %>% 
-  ggplot(mapping = aes(x = City)) +
-  geom_bar()
 ```
 
 ```{r}
@@ -177,44 +177,55 @@ adjusted_data %>%
 ```{r}
 city_filter <- c("Paso Robles", "San Luis Obispo", "Atascadero", "Arroyo Grande", "Nipomo", "Cambria")
 
-# Define the mapping dictionary
-city_mapping <- list(
-  'TTON' = 'Templeton',
-  'GRVC' = 'Grover Beach',
-  'SLO' = 'San Luis Obispo',
-  'PSOR' = 'Paso Robles',
-  'NPMO' = 'Nipomo',
-  'ATSC' = 'Atascadero',
-  'UNIC' = 'Unincorporated',
-  'ARRG' = 'Arroyo Grande',
-  'PSMO' = 'Pismo Beach',
-  'AVIL' = 'Avila Beach',
-  'CAMB' = 'Cambria',
-  'SSIM' = 'San Simeon',
-  'CAYU' = 'Cayucos',
-  'CRST' = 'Creston',
-  'MRBY' = 'Morro Bay',
-  'OCNO' = 'Oceano',
-  'OSOS' = 'Los Osos',
-  'BDLY' = 'Bradley',
-  'SHDN' = 'Shandon',
-  'SMIG' = 'San Miguel',
-  'SMRG' = 'Santa Margarita',
-  'SMIA' = 'Santa Maria',
-  'LKNA' = 'Lake Nacimiento',
-  'CVLL' = 'Creston Village'
-)
-
-# Replace city codes with actual names
-adjusted_data <- adjusted_data %>% 
-  mutate(City = recode(City, !!!city_mapping))
+# # Define the mapping dictionary
+# city_mapping <- list(
+#   'TTON' = 'Templeton',
+#   'GRVC' = 'Grover Beach',
+#   'SLO' = 'San Luis Obispo',
+#   'PSOR' = 'Paso Robles',
+#   'NPMO' = 'Nipomo',
+#   'ATSC' = 'Atascadero',
+#   'UNIC' = 'Unincorporated',
+#   'ARRG' = 'Arroyo Grande',
+#   'PSMO' = 'Pismo Beach',
+#   'AVIL' = 'Avila Beach',
+#   'CAMB' = 'Cambria',
+#   'SSIM' = 'San Simeon',
+#   'CAYU' = 'Cayucos',
+#   'CRST' = 'Creston',
+#   'MRBY' = 'Morro Bay',
+#   'OCNO' = 'Oceano',
+#   'OSOS' = 'Los Osos',
+#   'BDLY' = 'Bradley',
+#   'SHDN' = 'Shandon',
+#   'SMIG' = 'San Miguel',
+#   'SMRG' = 'Santa Margarita',
+#   'SMIA' = 'Santa Maria',
+#   'LKNA' = 'Lake Nacimiento',
+#   'CVLL' = 'Creston Village'
+# )
+# 
+# # Replace city codes with actual names
+# adjusted_data <- adjusted_data %>% 
+#   mutate(City = recode(City, !!!city_mapping))
 
 
 adjusted_data %>%
-  filter(City %in% city_filter) %>%
+  filter(CITY %in% city_filter) %>%
   ggplot(mapping = aes(x = Adjusted_Price)) +
   geom_histogram(bins = 50, fill = "blue", color = "black", alpha = 0.7) +
-  facet_wrap(~ City, scales = "free") +
+  facet_wrap(~ CITY, scales = "free") +
   scale_x_continuous()  # Optionally add breaks and labels here if needed
+```
+
+## Week 3 -
+
+
+```{r}
+# Possible way to get reset of lat/long
+library(tidygeocoder)
+
+lat_longs <- adjusted_data %>%
+ geocode(full_adress, method = "osm", lat = Latitude, long = Longitude, full_results = TRUE)
 ```
 
